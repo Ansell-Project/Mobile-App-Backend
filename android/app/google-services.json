@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "324884454260",
+    "firebase_url": "https://plant-tracking-app-17eb6-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "plant-tracking-app-17eb6",
+    "storage_bucket": "plant-tracking-app-17eb6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324884454260:android:25e19a312ee7ec464aaa21",
+        "android_client_info": {
+          "package_name": "com.example.plant_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFUAT2nqLiyXeqeh1IILTfQtrrVs4kyg8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324884454260:android:b06f49083f3bac144aaa21",
+        "android_client_info": {
+          "package_name": "com.tnetweb.plant_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFUAT2nqLiyXeqeh1IILTfQtrrVs4kyg8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

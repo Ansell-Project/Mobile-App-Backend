@@ -1,0 +1,2 @@
+D:/www/New folder/New folder/plant_app/android/app/.cxx/Debug/3n4qg5q6/x86/CMakeFiles/edit_cache.dir
+D:/www/New folder/New folder/plant_app/android/app/.cxx/Debug/3n4qg5q6/x86/CMakeFiles/rebuild_cache.dir

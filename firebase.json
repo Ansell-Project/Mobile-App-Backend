@@ -1,0 +1,24 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "plant-tracking-app-17eb6",
+          "appId": "1:324884454260:android:b06f49083f3bac144aaa21",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "plant-tracking-app-17eb6",
+          "configurations": {
+            "android": "1:324884454260:android:b06f49083f3bac144aaa21"
+          }
+        }
+      }
+    }
+  },
+  "database": {
+    "rules": "database.rules.json"
+  }
+}
