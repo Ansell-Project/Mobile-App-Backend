@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:plant_app/main.dart';
+import 'package:plant_app/main.dart'; // Ensure MainScreen is available
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -20,12 +22,63 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  Future<void> _loginWithEmployeeId() async {
+    final empId = _employeeIdController.text.trim();
+    final password = _passwordController.text;
+
+    if (empId.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter Employee ID and password')),
+      );
+      return;
+    }
+
+    try {
+      // Step 1: Find the user's email using employee ID
+      final query = await FirebaseFirestore.instance
+          .collection('users')
+          .where('employeeId', isEqualTo: empId)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Employee ID not found')),
+        );
+        return;
+      }
+
+      final userData = query.docs.first.data();
+      final email = userData['email'];
+
+      // Step 2: Use email + password to sign in
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Step 3: Navigate to main screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Login failed')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unexpected error')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image with Clip Path
+          // Background
           SizedBox(
             width: double.infinity,
             height: double.infinity,
@@ -35,7 +88,6 @@ class _LoginPageState extends State<LoginPage> {
                   flex: 2,
                   child: Stack(
                     children: [
-                      // Plant Background Image
                       Container(
                         width: double.infinity,
                         decoration: const BoxDecoration(
@@ -45,8 +97,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-
-                      // Curved Bottom Overlay
                       Positioned(
                         bottom: -1,
                         left: 0,
@@ -64,14 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-
-                // Form Area
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    color: Colors.white,
-                  ),
-                ),
+                Expanded(flex: 3, child: Container(color: Colors.white)),
               ],
             ),
           ),
@@ -83,8 +126,6 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 children: [
                   const Spacer(flex: 2),
-
-                  // Login Text
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -96,10 +137,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
 
-                  // Name Field
+                  // Employee ID
                   TextFormField(
                     controller: _employeeIdController,
                     decoration: InputDecoration(
@@ -107,24 +147,20 @@ class _LoginPageState extends State<LoginPage> {
                       fillColor: Colors.grey.shade100,
                       hintText: 'Enter your Employee Id',
                       hintStyle: TextStyle(color: Colors.grey.shade700),
-                      prefixIcon: Icon(
-                        Icons.person,
-                        color: Colors.green.shade700,
-                      ),
+                      prefixIcon:
+                          Icon(Icons.person, color: Colors.green.shade700),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 16,
-                      ),
+                          vertical: 16, horizontal: 16),
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Password Field
+                  // Password
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,
@@ -136,28 +172,23 @@ class _LoginPageState extends State<LoginPage> {
                         color: Colors.grey.shade700,
                         letterSpacing: 3,
                       ),
-                      prefixIcon: Icon(
-                        Icons.lock,
-                        color: Colors.green.shade700,
-                      ),
+                      prefixIcon:
+                          Icon(Icons.lock, color: Colors.green.shade700),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 16,
-                      ),
+                          vertical: 16, horizontal: 16),
                     ),
                   ),
 
                   const SizedBox(height: 10),
 
-                  // Remember Me and Forgot Password
+                  // Remember Me
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Remember Me Checkbox
                       Row(
                         children: [
                           Transform.scale(
@@ -178,14 +209,10 @@ class _LoginPageState extends State<LoginPage> {
                           Text(
                             'Remember me',
                             style: TextStyle(
-                              color: Colors.green.shade800,
-                              fontSize: 14,
-                            ),
+                                color: Colors.green.shade800, fontSize: 14),
                           ),
                         ],
                       ),
-
-                      // Forgot Password
                       Text(
                         'Forget Password ?',
                         style: TextStyle(
@@ -204,12 +231,7 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => MainScreen()));
-                      },
+                      onPressed: _loginWithEmployeeId,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
@@ -220,28 +242,26 @@ class _LoginPageState extends State<LoginPage> {
                       child: const Text(
                         'Login',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Don't have account - Sign up
+                  // Sign Up Navigation (Optional)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         "Don't have an account? ",
                         style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 14,
-                        ),
+                            color: Colors.grey.shade700, fontSize: 14),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pushNamed(context, '/signup');
+                        },
                         child: Text(
                           "Sign up",
                           style: TextStyle(
@@ -255,8 +275,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   const SizedBox(height: 16),
-
-                  // Bottom Indicator Line
                   Container(
                     width: 40,
                     height: 4,

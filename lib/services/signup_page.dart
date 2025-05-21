@@ -1,5 +1,3 @@
-//New Code
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +8,6 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // Controllers for each TextField
   final TextEditingController _employeeIdController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -30,16 +27,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _showMessage(String message, [Color backgroundColor = Colors.red]) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: backgroundColor,
-      ),
+      SnackBar(content: Text(message), backgroundColor: backgroundColor),
     );
   }
 
   bool _isValidEmail(String email) {
-    // Simple email validation regex
-    final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}");
+    final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
     return emailRegex.hasMatch(email);
   }
 
@@ -50,7 +43,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final password = _passwordController.text;
     final confirm = _confirmPasswordController.text;
 
-    // — your existing validations…
     if (empId.isEmpty) {
       _showMessage('Employee ID cannot be empty');
       return;
@@ -69,27 +61,54 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     try {
-      // 1) Create Auth user
-      final cred = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
+      // Step 1: Create Firebase Auth user
+      final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      // 2) Write profile to Firestore
+      //Step 2: Ensure user is signed in (wait until auth state is fully ready)
+      await Future.delayed(Duration(milliseconds: 500));
+
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        _showMessage('User not signed in yet. Try again.');
+        return;
+      }
+
+      // Step 3: Save profile to Firestore
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(cred.user!.uid)
-          .set({
+          .doc(currentUser.uid)
+          .set(<String, dynamic>{
         'employeeId': empId,
         'fullName': fullName,
         'email': email,
         'createdAt': FieldValue.serverTimestamp(),
+        'plant_given_date': null,
+        'plant_location': null,
+        'circumference_tree': 0.0,
+        'height_tree': 0.0,
+        'Plant_Age': 0,
+        'agb_tree': 0.0,
+        'distance': 0.0,
+        'profile_picture_link': '',
+        'plant_image_link': '',
+        'description': '',
+        'fuel_type': '',
+        'transport_method': '',
+        'isblocked': false,
       });
 
       _showMessage('Sign up successful!', Colors.green);
-      debugPrint('Registered UID=${cred.user!.uid}');
+      debugPrint('Registered UID=${currentUser.uid}');
     } on FirebaseAuthException catch (e) {
       _showMessage(e.message ?? 'Signup error');
-    } catch (e) {
-      _showMessage('Unexpected error');
+      debugPrint('FirebaseAuthException: ${e.message}');
+    } catch (e, stackTrace) {
+      _showMessage('Firestore write failed ,');
+      debugPrint('Firestore error: $e');
+      debugPrint('StackTrace: $stackTrace');
     }
   }
 
@@ -102,7 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 'Register',
                 style: TextStyle(
@@ -111,34 +130,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   color: Colors.green[700],
                 ),
               ),
-              SizedBox(height: 8),
-              Text(
-                'create your new account',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
+              const SizedBox(height: 8),
+              const Text(
+                'Create your new account',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField(
-                  _employeeIdController, Icons.badge, 'Enter your Employee Id'),
+                _employeeIdController,
+                Icons.badge,
+                'Enter your Employee ID',
+              ),
               _buildTextField(
-                  _fullNameController, Icons.person, 'Enter your full name'),
+                _fullNameController,
+                Icons.person,
+                'Enter your full name',
+              ),
               _buildTextField(
-                  _emailController, Icons.email, 'Enter your email address'),
+                _emailController,
+                Icons.email,
+                'Enter your email address',
+              ),
               _buildTextField(
-                  _passwordController, Icons.lock, 'Enter your password',
-                  obscureText: true),
-              _buildTextField(_confirmPasswordController, Icons.lock,
-                  'Confirm your password',
-                  obscureText: true),
-              SizedBox(height: 10),
-              Text(
-                'By signing you agree to our Terms of Use and Privacy Notice',
+                _passwordController,
+                Icons.lock,
+                'Enter your password',
+                obscureText: true,
+              ),
+              _buildTextField(
+                _confirmPasswordController,
+                Icons.lock,
+                'Confirm your password',
+                obscureText: true,
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'By signing up you agree to our Terms of Use and Privacy Notice',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -150,7 +181,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Sign Up',
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
@@ -164,8 +195,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller, IconData icon, String hint,
-      {bool obscureText = false}) {
+    TextEditingController controller,
+    IconData icon,
+    String hint, {
+    bool obscureText = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
